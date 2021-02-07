@@ -1,0 +1,89 @@
+<body>
+
+<h1>Meme Stream</h1>
+<div>
+	<form id='memeForm'>
+		<p><input type="text" id="name" name="name" placeholder="name" /></p>
+		<p><input type="text" id="caption" name="caption" placeholder="caption" /></p>
+		<p><input type="url" id="url" name="url" placeholder="meme URL" /></p>
+		<p><input type="submit" id="sub" name="submit" value="Submit Meme" /></p>
+	</form>
+</div><hr>
+<div id="meme-list"></div>
+
+<script>
+	function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = cookies[i].trim();
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+		}
+	var csrftoken = getCookie('csrftoken');
+
+	buildList()
+
+	function buildList(){
+			var wrapper = document.getElementById('meme-list')
+			wrapper.innerHTML = ''
+
+			var url = 'http://127.0.0.1:8000/api/memes/'
+
+			fetch(url)
+			.then((resp) => resp.json())
+			.then(function(data){
+				console.log('Data:', data)
+
+				var list = data
+				for (var i in list){
+
+					var item = `
+						<div id="data-row-${i}" style="">
+							<div style="padding:2%;">
+								<b><span class="name">${list[i].name}</span></b><br>
+								<span class="name">${list[i].caption}</span>
+							</div>
+							<div style="padding:2%;">
+								<img src='${list[i].url}' style='width:300px; height:auto;' />
+							</div>							
+						</div>
+					`
+					wrapper.innerHTML += item
+	
+				}
+
+			})
+		}
+
+		var form = document.getElementById('memeForm')
+				form.addEventListener('submit', function(e){
+					e.preventDefault()
+					console.log('Form submitted')
+					var url = 'http://127.0.0.1:8000/api/memes/'
+
+					var name = document.getElementById('name').value
+					var caption = document.getElementById('caption').value
+					var memeURL = document.getElementById('url').value
+					fetch(url, {
+						method:'POST',
+						headers:{
+							'Content-type':'application/json',
+							'X-CSRFToken':csrftoken,
+						},
+						body:JSON.stringify({'name':name,'caption':caption,'url':memeURL})
+					}
+					).then(function(response){
+						buildList()
+						document.getElementById('memeForm').reset()
+					})
+		})
+</script>
+</body>
